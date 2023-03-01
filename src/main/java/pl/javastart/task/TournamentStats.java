@@ -5,9 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class TournamentStats {
+class TournamentStats {
     private static final String FILE_NAME = "stats.csv";
-    List<Player> playerList = new ArrayList<>();
+    private final List<Player> playerList = new ArrayList<>();
 
     void run(Scanner scanner) {
         try {
@@ -19,14 +19,18 @@ public class TournamentStats {
 
     private void mainLoop(Scanner scanner) {
         boolean stop = false;
+        readDataFromUser(scanner, stop);
+        Comparator<Player> comparator = createComparatorWithOrder(scanner);
+        playerList.sort(comparator);
+        scanner.close();
+        saveValuesInFile(playerList);
+    }
+
+    private void readDataFromUser(Scanner scanner, boolean stop) {
         do {
             System.out.println("Podaj wynik kolejnego gracza (lub STOP):");
             String result = scanner.nextLine();
-            if (result.compareTo("STOP") == 0 || result.compareTo("stop") == 0) {
-                Comparator<Player> comparator = chooseParameterToSortWith(scanner);
-                playerList.sort(comparator);
-                chooseSortOrderAndSaveListInFile(scanner, playerList);
-                scanner.close();
+            if ("stop".equalsIgnoreCase(result)) {
                 stop = true;
             } else {
                 addPlayer(playerList, result);
@@ -42,22 +46,11 @@ public class TournamentStats {
         playerList.add(new Player(firstName, lastName, playerResult));
     }
 
-    private void chooseSortOrderAndSaveListInFile(Scanner scanner, List<Player> playerList) {
-        System.out.println("Sortować rosnąco czy malejąco? (1 - rosnąco, 2 - malejąco)");
-        int sortOrder = scanner.nextInt();
-        switch (sortOrder) {
-            case 1 -> saveValuesInFile(playerList);
-            case 2 -> saveReversedValuesInFile(playerList);
-            default -> System.out.println("Podałeś błędny parametr sortowania.");
-        }
-        System.out.println("Dane posortowano i zapisano do pliku " + FILE_NAME + ".");
-    }
-
-    private Comparator<Player> chooseParameterToSortWith(Scanner scanner) {
+    private Comparator<Player> createComparatorWithOrder(Scanner scanner) {
         Comparator<Player> comparator = null;
         System.out.println("Po jakim parametrze posortować? (1 - imię, 2 - nazwisko, 3 - wynik)");
-        int sortOrder = scanner.nextInt();
-        switch (sortOrder) {
+        int sortPerimeter = scanner.nextInt();
+        switch (sortPerimeter) {
             case 1 -> comparator = new NameComparator();
             case 2 -> comparator = new LastNameComparator();
             case 3 -> comparator = new ResultComparator();
@@ -65,6 +58,11 @@ public class TournamentStats {
                 System.out.println("Podałeś błędny parametr sortowania.");
                 System.exit(0);
             }
+        }
+        System.out.println("Sortować rosnąco czy malejąco? (1 - rosnąco, 2 - malejąco)");
+        int sortOrder = scanner.nextInt();
+        if (sortOrder == 2) {
+            comparator = comparator.reversed();
         }
         return comparator;
     }
@@ -80,14 +78,10 @@ public class TournamentStats {
                     writer.newLine();
                 }
                 writer.close();
+                System.out.println("Dane posortowano i zapisano do pliku " + FILE_NAME + ".");
             } catch (IOException e) {
                 System.err.println("Nie udało się zapisać pliku.");
             }
         }
-    }
-
-    private void saveReversedValuesInFile(List<Player> playerList) {
-        Collections.reverse(playerList);
-        saveValuesInFile(playerList);
     }
 }

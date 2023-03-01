@@ -1,6 +1,6 @@
 package pl.javastart.task;
 
-public class Player {
+class Player {
     private final String firstName;
     private final String lastName;
     private final int result;
