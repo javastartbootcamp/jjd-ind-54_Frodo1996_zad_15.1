@@ -7,7 +7,6 @@ import java.util.*;
 
 class TournamentStats {
     private static final String FILE_NAME = "stats.csv";
-    private final List<Player> playerList = new ArrayList<>();
 
     void run(Scanner scanner) {
         try {
@@ -19,14 +18,15 @@ class TournamentStats {
 
     private void mainLoop(Scanner scanner) {
         boolean stop = false;
-        readDataFromUser(scanner, stop);
+        List<Player> playerList = readDataFromUser(scanner, stop);
         Comparator<Player> comparator = createComparatorWithOrder(scanner);
         playerList.sort(comparator);
         scanner.close();
         saveValuesInFile(playerList);
     }
 
-    private void readDataFromUser(Scanner scanner, boolean stop) {
+    private List<Player> readDataFromUser(Scanner scanner, boolean stop) {
+        final List<Player> playerList = new ArrayList<>();
         do {
             System.out.println("Podaj wynik kolejnego gracza (lub STOP):");
             String result = scanner.nextLine();
@@ -36,6 +36,7 @@ class TournamentStats {
                 addPlayer(playerList, result);
             }
         } while (!stop);
+        return playerList;
     }
 
     private void addPlayer(Collection<Player> playerList, String result) {
@@ -47,18 +48,14 @@ class TournamentStats {
     }
 
     private Comparator<Player> createComparatorWithOrder(Scanner scanner) {
-        Comparator<Player> comparator = null;
         System.out.println("Po jakim parametrze posortować? (1 - imię, 2 - nazwisko, 3 - wynik)");
         int sortPerimeter = scanner.nextInt();
-        switch (sortPerimeter) {
+        Comparator<Player> comparator = switch (sortPerimeter) {
             case 1 -> comparator = new NameComparator();
             case 2 -> comparator = new LastNameComparator();
             case 3 -> comparator = new ResultComparator();
-            default -> {
-                System.out.println("Podałeś błędny parametr sortowania.");
-                System.exit(0);
-            }
-        }
+            default -> throw new IllegalArgumentException("Błędna opcja");
+        };
         System.out.println("Sortować rosnąco czy malejąco? (1 - rosnąco, 2 - malejąco)");
         int sortOrder = scanner.nextInt();
         if (sortOrder == 2) {
